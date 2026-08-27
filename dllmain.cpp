@@ -12,29 +12,54 @@ PropertyListPtr BackupSettings;
 void Initialize() {
 	cPropManager* propMan = (cPropManager*)PropManager.Get();
 	if (propMan) {
+		//hash_map to read properties from the stream
 		propMan->mPropertyIDsToNames.emplace(id("BackupByStepEDT"), "BackupByStepEDT");
 		propMan->mPropertyIDsToNames.emplace(id("BackupByStepADV"), "BackupByStepADV");
 		propMan->mPropertyIDsToNames.emplace(id("BackupEnable"), "BackupEnable");
+
+		//hash_map to wrtie properties to the stream
 		propMan->mNamesToPropertyIDs.emplace("backupbystepedt", id("BackupByStepEDT"));
 		propMan->mNamesToPropertyIDs.emplace("backupbystepadv", id("BackupByStepADV"));
 		propMan->mNamesToPropertyIDs.emplace("backupenable", id("BackupEnable"));
+
+		//hasm_map for using properties in the game
 		propMan->mPropertyDefinitions.SetProperty(id("BackupByStepEDT"), &Property().SetValueInt32(4));
 		propMan->mPropertyDefinitions.SetProperty(id("BackupByStepADV"), &Property().SetValueInt32(8));
 		propMan->mPropertyDefinitions.SetProperty(id("BackupEnable"), &Property().SetValueBool(true));
+
+		if (propMan->mPropertyIDsToNames.find(0x594A0FB) == propMan->mPropertyIDsToNames.end())
+			propMan->mPropertyIDsToNames.emplace(0x594A0FB, "EditorAllowXMLFileDrop");
+
+		if (propMan->mNamesToPropertyIDs.find("editorallowxmlfiledrop") == propMan->mNamesToPropertyIDs.end())
+			propMan->mNamesToPropertyIDs.emplace("editorallowxmlfiledrop", 0x594A0FB);
+
 		propMan = nullptr;
 	}
+	bool created = false;
 	ResourceKey key = { id("BackupSettings"), TypeIDs::prop, 0x11ac192 };
-	BackupSettings = new PropertyList();
-	DatabasePtr data = ResourceManager.FindDatabase(key);
-	if (!data) {
+	if (!ResourceManager.FindDatabase(key)) {
+		BackupSettings = new PropertyList();
 		BackupSettings->SetResourceKey(key);
 		BackupSettings->SetProperty(id("BackupByStepEDT"), PropManager.GetPropertyDefinition(id("BackupByStepEDT")));
 		BackupSettings->SetProperty(id("BackupByStepADV"), PropManager.GetPropertyDefinition(id("BackupByStepADV")));
 		BackupSettings->SetProperty(id("BackupEnable"), PropManager.GetPropertyDefinition(id("BackupEnable")));
+		BackupSettings->SetProperty(0x594A0FB, &Property().SetValueBool(true));	//EditorAllowXMLFileDrop
 		SaveNamedResource(BackupSettings.get(), u"BackupSettings.prop", Paths::GetSaveArea(SaveAreaID::Preferences));
-	}
-	if (PropManager.GetPropertyList(key.instanceID, key.groupID, BackupSettings))
 		PropManager.AddPropertyList(BackupSettings.get(), key.instanceID, key.groupID);
+		created = true;
+	}
+	PropManager.GetPropertyList(key.instanceID, key.groupID, BackupSettings);
+
+	//i feel dumb. Properties checks
+	if (!created) {
+		if (!BackupSettings->HasProperty(id("BackupByStepEDT"))) BackupSettings->SetProperty(id("BackupByStepEDT"), PropManager.GetPropertyDefinition(id("BackupByStepEDT")));
+		if (!BackupSettings->HasProperty(id("BackupByStepADV"))) BackupSettings->SetProperty(id("BackupByStepADV"), PropManager.GetPropertyDefinition(id("BackupByStepADV")));
+		if (!BackupSettings->HasProperty(id("BackupEnable"))) BackupSettings->SetProperty(id("BackupEnable"), PropManager.GetPropertyDefinition(id("BackupEnable")));
+		if (!BackupSettings->HasProperty(0x594A0FB)) BackupSettings->SetProperty(0x594A0FB, PropManager.GetPropertyDefinition(0x594A0FB));
+	}
+	bool EditorAllowXMLFileDrop;
+	Property::GetBool(BackupSettings.get(), 0x594A0FB, EditorAllowXMLFileDrop);
+	GetAppProperties()->SetProperty(0x594A0FB, &Property().SetValueBool(EditorAllowXMLFileDrop));
 
 	CheatManager.AddCheat("backupcreations", new RCB_Cheat());
 	listener = new RCB_Listener();
@@ -45,9 +70,10 @@ void Dispose() {
 	MessageManager.RemoveListener(listener, 0x24ce123);
 	listener = nullptr;
 	SaveNamedResource(BackupSettings.get(), u"BackupSettings.prop", Paths::GetSaveArea(Resource::SaveAreaID::Preferences));
+	BackupSettings = nullptr;
 }
 
-string16 fpath;
+string16 fpath(u".");
 using namespace Simulator;
 member_detour(cScenarioData_GetResourceByKey, cScenarioData, bool(ResourceKey*)) {
 	bool detoured(ResourceKey* key) {
@@ -63,9 +89,20 @@ member_detour(cScenarioData_GetResourceByKey, cScenarioData, bool(ResourceKey*))
 				}
 				file->Close();
 			}
-			fpath.clear(); fpath.resize(0);
 		}
 		return result;
+	}
+};
+
+static_detour(IsValid, bool(bitset<128>, bitset<128>)) {
+	bool detoured(bitset<128> validity, bitset<128> filter) {
+		bool res = original_function(validity, filter);
+		if (!res && !fpath.empty()) {
+			validity[Editors::kValidityInvalidName] = false;
+			validity[Editors::kValidityBlankName] = false;
+			return original_function(validity, filter);
+		}
+		return res;
 	}
 };
 
@@ -121,7 +158,7 @@ member_detour(CommitEditHistory, cEditor, void(bool, EditorStateEditHistory*)) {
 						//SP::cSPEditorResourceFactory::WriteResourceToStream
 						STATIC_CALL
 						(
-							Address(0x4bd190),
+							Address(ModAPI::ChooseAddress(0x4b73d0, 0x4bd190)),
 							bool,
 							Args(IO::IStream*, Editors::cEditorResource*, uint32_t),
 							Args(file.get(), backup.get(), backup->GetResourceKey().typeID)
@@ -139,6 +176,7 @@ void AttachDetours() {
 	CommitEditHistory::attach(GetAddress(Editors::cEditor, CommitEditHistory));
 	cScenarioData_CommitHistoryEntry::attach(GetAddress(cScenarioData, CommitHistoryEntry));
 	cScenarioTerraformMode_CommitHistoryEntry::attach(GetAddress(cScenarioTerraformMode, CommitHistoryEntry));
+	IsValid::attach(Address(ModAPI::ChooseAddress(0x4ede60,0x4f3d80)));
 }
 
 

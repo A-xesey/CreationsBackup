@@ -19,13 +19,15 @@ int RCB_Listener::Release()
 }
 
 inline uint32_t ReturnGroupByType(const uint32_t& type) {
+	using namespace TypeIDs;
+	using namespace GroupIDs;
 	switch (type) {
-	case TypeIDs::cll: return GroupIDs::CellModels;
-	case TypeIDs::bld: return GroupIDs::BuildingModels;
-	case TypeIDs::vcl: return GroupIDs::VehicleModels;
-	case TypeIDs::ufo: return GroupIDs::UFOModels;
-	case TypeIDs::flr: return GroupIDs::FloraModels;
-	default: return GroupIDs::CreatureModels;
+	case cll: return CellModels;
+	case bld: return BuildingModels;
+	case vcl: return VehicleModels;
+	case ufo: return UFOModels;
+	case flr: return FloraModels;
+	default: return CreatureModels;
 	}
 }
 
@@ -88,7 +90,6 @@ bool RCB_Listener::HandleMessage(uint32_t messageID, void* message)
 			file->Close();*/
 		}
 		mes = nullptr;
-
 	}
 	else if (Editor.IsActive() && messageID == 0x24ce123) {
 		using namespace Editors;
@@ -100,19 +101,25 @@ bool RCB_Listener::HandleMessage(uint32_t messageID, void* message)
 				FileStreamPtr bem = new IO::FileStream(mes->mFileStrs[0].c_str());
 				if (bem->Open()) {
 					cEditorResourcePtr creation = new cEditorResource();
-					bool res = STATIC_CALL
+					bool res = STATIC_CALL	//ReadResourceFromStream
 					(
-						Address(0x4bcc10),
+						Address(ModAPI::ChooseAddress(0x4ba150, 0x4bcc10)),
 						bool,
 						Args(IO::IStream*, cEditorResource*, uint32_t),
 						Args(bem.get(), creation.get(), TypeIDs::bem)
 					);
 					if (res) {
 						EditorModel* model = new EditorModel(); model->Load(creation.get());
-						uint32_t editorID = STATIC_CALL(Address(0x4333e0), uint32_t, Args(uint32_t), Args(creation->mProperties.mModelType));
-						if (creation->mProperties.mModelType == id("plant")) editorID = id("FloraEditorSetup");
-						if (editorID != Editor.mEditorName)
-							CALL(Address(0x579720), void, Args(cEditor*, uint32_t, int, int, int), Args(&Editor, editorID, 0, 0, 0));
+						uint32_t modelType = creation->mProperties.mModelType;
+						uint32_t editorID = STATIC_CALL(Address(ModAPI::ChooseAddress(0x432f00, 0x4333e0)), uint32_t, Args(uint32_t), Args(modelType));
+						if (modelType == id("plant")) editorID = id("FloraEditorSetup");
+						/*if (Editor.mModelTypes[0] != modelType && Editor.mEditorName == id("CreatureEditorSmall")) {
+							if (modelType == kPlantSmall) Editor.mEditorName = id("FloraEditorSmall");
+							else if (modelType == kPlantMedium) Editor.mEditorName = id("FloraEditorMedium");
+							else if (modelType == kPlantLarge) Editor.mEditorName = id("FloraEditorLarge");
+						}*/
+						if (editorID != Editor.mEditorName)	//SetCurrentConfig
+							CALL(Address(ModAPI::ChooseAddress(0x572880, 0x579720)), void, Args(cEditor*, uint32_t, int, int, int), Args(&Editor, editorID, 0, 0, 0));
 
 						IDGenerator.GenerateForGroup(model->mKey, Editor.mSaveExtension, ReturnGroupByType(Editor.mSaveExtension));
 						wbem = mes->mFileStrs[0].rfind(u"/") != string16::npos ? mes->mFileStrs[0].substr(mes->mFileStrs[0].rfind(u"/") + 1) : mes->mFileStrs[0].substr(mes->mFileStrs[0].rfind(u"\\") + 1);
@@ -122,7 +129,7 @@ bool RCB_Listener::HandleMessage(uint32_t messageID, void* message)
 						Editor.field_4B0 = true;
 						Editor.field_4B1 = false;
 						//InitializeUndoList
-						CALL(Address(0x586690), void, Args(cEditor*), Args(&Editor));
+						CALL(Address(ModAPI::ChooseAddress(0x57f330, 0x586690)), void, Args(cEditor*), Args(&Editor));
 						model = nullptr;
 					}
 					bem->Close();

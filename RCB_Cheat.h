@@ -11,6 +11,10 @@ public:
 
 	// Called when the cheat is invoked
 	void ParseLine(const ArgScript::Line& line) override;
+
+	void SetInt32Property(const string& option, const string& s_value);
+	void SetBoolProperty(const string& option, const string& s_value);
+	void SetString16Property(const string& option, string16& s_value);
 	
 	// Returns a string containing the description. If mode != DescriptionMode::Basic, return a more elaborated description
 	const char* GetDescription(ArgScript::DescriptionMode mode) const override;

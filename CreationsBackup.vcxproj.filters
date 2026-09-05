@@ -11,6 +11,15 @@
     <Filter Include="CreationsBackup">
       <UniqueIdentifier>{3880d018-2395-4502-abfe-4b83e0817aab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="CreationsBackup\BackupFunctions">
+      <UniqueIdentifier>{445b6b2a-ed99-40ab-8cc0-252a4b1b0bd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CreationsBackup\Classes">
+      <UniqueIdentifier>{9eae7c32-a2f7-4c88-9eed-f67f6350aeea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CreationsBackup\enums">
+      <UniqueIdentifier>{76053c5e-a038-45e4-8608-aa27752c529b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="targetver.h">
@@ -22,14 +31,53 @@
     <ClInclude Include="RCB_Listener.h">
       <Filter>CreationsBackup</Filter>
     </ClInclude>
-    <ClInclude Include="cOSFileDropNotificationMessager.h">
-      <Filter>CreationsBackup</Filter>
-    </ClInclude>
-    <ClInclude Include="CreateDirectory.h">
-      <Filter>CreationsBackup</Filter>
-    </ClInclude>
     <ClInclude Include="RCB_Cheat.h">
       <Filter>CreationsBackup</Filter>
+    </ClInclude>
+    <ClInclude Include="PropManager_BackupProperties.h">
+      <Filter>CreationsBackup</Filter>
+    </ClInclude>
+    <ClInclude Include="cResourceCityMusic.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="cPlayerCityMusic.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="BackupCreationsCityMusic.h">
+      <Filter>CreationsBackup\BackupFunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="BackupCreationsEditor.h">
+      <Filter>CreationsBackup\BackupFunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="BackupCreationsScenarioMode.h">
+      <Filter>CreationsBackup\BackupFunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="cOSFileDropNotificationMessager.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="CreateDirectory.h">
+      <Filter>CreationsBackup\BackupFunctions</Filter>
+    </ClInclude>
+    <ClInclude Include="cCityInputStrategy.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="cCommunityEditor.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="cCityMusicEditor.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="cSimulatorCivGame.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="eBackupProperties.h">
+      <Filter>CreationsBackup\enums</Filter>
+    </ClInclude>
+    <ClInclude Include="ReadWrite_cResourceCityMusic.h">
+      <Filter>CreationsBackup\Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="FilePath.h">
+      <Filter>CreationsBackup\enums</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -44,6 +92,12 @@
     </ClCompile>
     <ClCompile Include="RCB_Cheat.cpp">
       <Filter>CreationsBackup</Filter>
+    </ClCompile>
+    <ClCompile Include="PropManager_BackupProperties.cpp">
+      <Filter>CreationsBackup</Filter>
+    </ClCompile>
+    <ClCompile Include="ReadWrite_cResourceCityMusic.cpp">
+      <Filter>CreationsBackup\Classes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -1,10 +1,37 @@
 #pragma once
-
 #include <Spore\BasicIncludes.h>
 #include <string>
 #include <iostream>
-using namespace Resource;
+#include "eBackupProperties.h"
 
+extern PropertyListPtr BackupSettings;
+inline uint32_t GetPropertyName(uint32_t type) {
+	using namespace TypeIDs;
+	switch (type) {
+	case cll:
+	case crt:
+	case vcl:
+	case ufo:
+	case bld:
+	case flr: return kBackupByStepEDT;
+	case cmp: return kBackupByStepCMP;
+	case adv: return kBackupByStepADV;
+	default: return 0;
+	}
+}
+
+int BackupExistsAndEnabled(uint32_t type) {
+	if (BackupSettings) {
+		bool BackupEnable;
+		int BackupByStep;
+		App::Property::GetBool(BackupSettings.get(), kBackupEnable, BackupEnable);
+		App::Property::GetInt32(BackupSettings.get(), GetPropertyName(type), BackupByStep);
+		if (BackupEnable && BackupByStep > 0) return BackupByStep;
+	}
+	return INT_MAX;
+}
+
+using namespace Resource;
 const char16_t* GetExtensionByType(uint32_t type) {
 	using namespace TypeIDs;
 	switch (type) {
@@ -15,7 +42,8 @@ const char16_t* GetExtensionByType(uint32_t type) {
 	case bld: return u".bld";
 	case flr: return u".flr";
 	case adv: return u".adv";
-	default: return u".unk";
+	case cmp: return u".cmp";
+	default: return u".unknown";
 	}
 }
 
@@ -29,6 +57,7 @@ const char16_t* GetFolderNameByGroup(uint32_t type) {
 	case bld: return u"Buildings/";
 	case flr: return u"Plants/";
 	case adv: return u"Adventures/";
+	case cmp: return u"CityMusics/";
 	default: return u"Unknown/";
 	}
 }
@@ -54,8 +83,9 @@ inline void CreateFolder(const wchar_t* path) {
 }
 
 template <typename T>
-inline void CreateBackupFileDirectory(string16& path, const char16_t* name, const T& backup) {
-	path.append(Paths::GetDirFromID(PathID::AppData)).append(u"Backups/");
+void CreateBackupFileDirectory(string16& path, const char16_t* name, const T& backup) {
+	App::Property::GetString16(BackupSettings.get(), kBackupPath, path);
+	path.append(u"Backups/");
 	CreateFolder((const wchar_t*)path.c_str());
 	path.append(GetFolderNameByGroup(backup->GetResourceKey().typeID));
 	CreateFolder((const wchar_t*)path.c_str());
@@ -66,11 +96,10 @@ inline void CreateBackupFileDirectory(string16& path, const char16_t* name, cons
 	path.append(GetExtensionByType(backup->GetResourceKey().typeID));
 }
 
-inline void ScenarioModeBackup() {
+void ScenarioModeBackup() {
 	cScenarioResourcePtr backup = ScenarioMode.GetResource();
 	if (backup) {
-		string16 path, name;
-		name.append(ScenarioMode.GetData()->GetName());
+		string16 path, name(ScenarioMode.GetData()->GetName());
 		if (name.empty()) {
 			ResourceKey key =
 			{
@@ -96,3 +125,4 @@ inline void ScenarioModeBackup() {
 		}
 	}
 }
+

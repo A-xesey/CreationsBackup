@@ -98,13 +98,26 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="cCityInputStrategy.h" />
+    <ClInclude Include="cCityMusicEditor.h" />
+    <ClInclude Include="cCommunityEditor.h" />
     <ClInclude Include="cOSFileDropNotificationMessager.h" />
+    <ClInclude Include="cPlayerCityMusic.h" />
     <ClInclude Include="CreateDirectory.h" />
+    <ClInclude Include="cResourceCityMusic.h" />
+    <ClInclude Include="cSimulatorCivGame.h" />
+    <ClInclude Include="eBackupProperties.h" />
+    <ClInclude Include="FilePath.h" />
+    <ClInclude Include="PropManager_BackupProperties.h" />
     <ClInclude Include="RCB_Cheat.h" />
+    <ClInclude Include="BackupCreationsCityMusic.h" />
+    <ClInclude Include="BackupCreationsEditor.h" />
     <ClInclude Include="RCB_Listener.h">
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="BackupCreationsScenarioMode.h" />
+    <ClInclude Include="ReadWrite_cResourceCityMusic.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -117,11 +130,13 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
       </PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PropManager_BackupProperties.cpp" />
     <ClCompile Include="RCB_Cheat.cpp" />
     <ClCompile Include="RCB_Listener.cpp">
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="ReadWrite_cResourceCityMusic.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
